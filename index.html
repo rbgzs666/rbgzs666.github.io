@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>RBG Cheat</title>
+    <style>
+        :root {
+            --bg: #1b1c1e;
+            --text: #fff;
+            --light-bg: rgba(255,255,255,0.1);
+            --accent: #165DFF;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html {
+            background: var(--bg);
+        }
+        body {
+            color: var(--text);
+            min-height: 100vh;
+            padding: calc(15px + env(safe-area-inset-top)) 15px calc(15px + env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        /* 背景图用伪元素固定：兼容 iOS Safari（iOS 不支持 background-attachment: fixed） */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                linear-gradient(180deg, rgba(27,28,30,0.70) 0%, rgba(27,28,30,0.86) 55%, rgba(27,28,30,0.94) 100%),
+                url('bg.jpg') center top / cover no-repeat,
+                var(--bg);
+        }
+        /* 手机端：图片上方补过留白，头顶不贴边 */
+        @media (max-width: 600px) {
+            body::before {
+                background:
+                    linear-gradient(180deg, rgba(27,28,30,0.70) 0%, rgba(27,28,30,0.86) 55%, rgba(27,28,30,0.94) 100%),
+                    url('bg-headroom.jpg') center top / cover no-repeat,
+                    var(--bg);
+            }
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        .header {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            background: url('logo.jpg') center/cover no-repeat;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.55);
+            animation: breathe 3.2s ease-in-out infinite;
+            margin: 0 auto;
+        }
+        .title {
+            font-size: 1.8em;
+            font-weight: 500;
+            background: linear-gradient(90deg, #ffffff 20%, #8ab4ff 50%, #ffffff 80%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 4s linear infinite;
+        }
+        .card-btn {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: white;
+            text-decoration: none;
+            padding: 8px 24px;
+            border-radius: 10px;
+            font-size: 1em;
+            width: fit-content;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .card-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.32);
+        }
+        .channel {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .group-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: white;
+            text-decoration: none;
+            padding: 8px 24px;
+            border-radius: 10px;
+            font-size: 1em;
+            width: fit-content;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .group-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.32);
+        }
+        .group-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #fff;
+            opacity: 0.85;
+        }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .music-player {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .track-btns {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+        .track-pill {
+            position: absolute;
+            z-index: 1;
+            border-radius: 6px;
+            background: var(--accent);
+            box-shadow: 0 0 12px rgba(22,93,255,0.55);
+            pointer-events: none;
+            transition: left 0.38s cubic-bezier(0.22,1,0.36,1), top 0.38s cubic-bezier(0.22,1,0.36,1), width 0.38s cubic-bezier(0.22,1,0.36,1), height 0.38s cubic-bezier(0.22,1,0.36,1);
+        }
+        .track-btn {
+            position: relative;
+            background: var(--light-bg);
+            border: none;
+            color: var(--text);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .track-btn span {
+            position: relative;
+            z-index: 2;
+        }
+        .track-btn.active {
+            background: transparent;
+        }
+        #audio {
+            width: 100%;
+            filter: invert(1);
+        }
+        .now-playing {
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.9;
+            min-height: 1.2em;
+        }
+        .custom-player {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 999px;
+            padding: 10px 16px;
+        }
+        .play-btn {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            border: none;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 14px rgba(22,93,255,0.5);
+        }
+        .play-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #fff;
+        }
+        .progress-wrap {
+            flex: 1;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            touch-action: none;
+        }
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+        .time-label {
+            font-size: 0.78em;
+            opacity: 0.7;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        .version-list {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .version-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        .version-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: var(--light-bg);
+        }
+        .version-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: url('logo.jpg') center/cover no-repeat;
+            flex-shrink: 0;
+        }
+        .version-info {
+            flex: 1;
+        }
+        .version-name {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        .version-desc {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .download-btn {
+            width: 44px;
+            height: 44px;
+            background: var(--light-bg);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .download-btn:hover {
+            background: var(--accent);
+        }
+        .download-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            padding: 12px 20px;
+            border-radius: 6px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 99;
+        }
+        /* 标题流光 */
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+        /* Logo 呼吸光晕 */
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 6px 24px rgba(0,0,0,0.55); }
+            50% { box-shadow: 0 6px 32px rgba(22,93,255,0.45); }
+        }
+        /* 入场渐现 */
+        .header, .music-player, .version-list {
+            animation: fadeUp 0.7s ease both;
+        }
+        .music-player { animation-delay: 0.15s; }
+        .version-list { animation-delay: 0.3s; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 下载项悬停 */
+        .version-icon {
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .version-item:hover .version-icon {
+            transform: scale(1.07);
+            box-shadow: 0 0 18px rgba(22,93,255,0.4);
+        }
+        .version-name {
+            transition: color 0.25s;
+        }
+        .version-item:hover .version-name {
+            color: #8ab4ff;
+        }
+        /* 播放均衡器 */
+        .eq {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 12px;
+            margin-right: 6px;
+        }
+        .eq span {
+            width: 3px;
+            height: 25%;
+            background: var(--accent);
+            border-radius: 1px;
+        }
+        .now-playing.playing .eq span {
+            animation: eqBounce 0.9s ease-in-out infinite;
+        }
+        .eq span:nth-child(2) { animation-delay: 0.2s; }
+        .eq span:nth-child(3) { animation-delay: 0.4s; }
+        .eq span:nth-child(4) { animation-delay: 0.6s; }
+        @keyframes eqBounce {
+            0%, 100% { height: 25%; }
+            50% { height: 100%; }
+        }
+        /* 平板适配：整体放大一号 */
+        @media (min-width: 768px) {
+            .container { max-width: 560px; gap: 32px; }
+            .logo { width: 96px; height: 96px; }
+            .title { font-size: 2.2em; }
+            .card-btn, .group-btn { font-size: 1.1em; padding: 10px 28px; }
+            .channel { font-size: 1em; }
+            .track-btn { font-size: 1em; padding: 7px 15px; }
+            .now-playing { font-size: 1em; }
+            .version-list { padding: 26px; gap: 34px; }
+            .version-icon { width: 80px; height: 80px; }
+            .version-name { font-size: 1.35em; }
+            .version-desc { font-size: 1em; }
+            .download-btn { width: 48px; height: 48px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo"></div>
+            <div class="title">RBG Cheat</div>
+            <div class="btn-row">
+                <a href="https://zhanyinkeji.site/shop/laotierbg" class="card-btn" target="_blank" onclick="showToast(event)">跳转卡网</a>
+                <a href="https://qm.qq.com/q/fBcc0qcKw8" class="group-btn" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 3C7.03 3 3 6.58 3 11c0 2.4 1.19 4.55 3.06 6-.08.68-.3 1.63-.83 2.53-.15.26.05.58.34.53 1.55-.27 2.75-.94 3.56-1.43.83.18 1.72.28 2.62.28 4.97 0 9-3.58 9-8s-4.03-8.91-8.75-8.91zM8.5 10.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm7 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z"/></svg>RBGQQ用户交流群</a>
+            </div>
+            <div class="channel">官方频道：@RBGZS6</div>
+        </div>
+
+        <div class="toast" id="toast">正在跳转至卡网页面...</div>
+
+        <div class="music-player">
+            <div class="track-btns">
+                <button class="track-btn active" data-src="今日不肯埋头.mp3" data-name="椎名17@wsbybb - 今日不肯埋头，明日何以抬头"><span>今日不肯埋头，明日何以抬头</span></button>
+                <button class="track-btn" data-src="不再逗留.mp3" data-name="椎名17@wsbybb - 不再逗留"><span>不再逗留</span></button>
+                <button class="track-btn" data-src="名花有主.mp3" data-name="椎名17@wsbybb - 名花有主"><span>名花有主</span></button>
+                <button class="track-btn" data-src="少年你也不甘吗.mp3" data-name="椎名17@wsbybb - 少年你也不甘吗"><span>少年你也不甘吗</span></button>
+                <button class="track-btn" data-src="废物三年.mp3" data-name="椎名17@wsbybb - 废物三年"><span>废物三年</span></button>
+            </div>
+            <div class="now-playing" id="nowPlaying"><span class="eq"><span></span><span></span><span></span><span></span></span><span id="nowPlayingText"></span></div>
+            <audio id="audio" preload="auto" style="display:none">
+                <source id="audioSource" src="今日不肯埋头.mp3" type="audio/mpeg">
+                浏览器不支持音频播放，请更新浏览器
+            </audio>
+            <div class="custom-player">
+                <button class="play-btn" id="playBtn" title="播放/暂停">
+                    <svg viewBox="0 0 24 24"><path id="playIconPath" d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                </button>
+                <div class="progress-wrap" id="progressWrap">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+                <div class="time-label" id="timeLabel">0:00 / 0:00</div>
+            </div>
+        </div>
+
+        <div class="version-list">
+            <div class="version-item">
+                <div class="version-icon"></div>
+                <div class="version-info">
+                    <div class="version-name">RBG Cheat</div>
+                    <div class="version-desc">64位版本</div>
+                </div>
+                <button class="download-btn" data-url="download64.html" onclick="saveAudioAndOpenNewWindow(this)" title="下载">
+                    <svg viewBox="0 0 24 24"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-8 4h16v2H4v-2z"/></svg>
+                </button>
+            </div>
+            <div class="version-item">
+                <div class="version-icon"></div>
+                <div class="version-info">
+                    <div class="version-name">RBG Cheat</div>
+                    <div class="version-desc">RBGLUA</div>
+                </div>
+                <button class="download-btn" data-url="https://example.com/obb" onclick="saveAudioAndOpenNewWindow(this)" title="下载">
+                    <svg viewBox="0 0 24 24"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-8 4h16v2H4v-2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audio = document.getElementById('audio');
+        const audioSource = document.getElementById('audioSource');
+        const trackBtns = document.querySelectorAll('.track-btn');
+        let currentTrackSrc = trackBtns[0].dataset.src;
+        let currentTrackName = trackBtns[0].dataset.name;
+
+        // 保存播放状态并打开新窗口
+        function saveAudioAndOpenNewWindow(btn) {
+            if (audio) {
+                localStorage.setItem('aceAudioTime', audio.currentTime);
+                localStorage.setItem('aceAudioSrc', currentTrackSrc);
+                localStorage.setItem('aceAudioName', currentTrackName);
+            }
+            const targetUrl = btn.dataset.url;
+            if (targetUrl) window.open(targetUrl, '_blank');
+        }
+
+        // 曲目按钮的蓝色滑动指示块
+        const trackBtnsWrap = document.querySelector('.track-btns');
+        const pill = document.createElement('div');
+        pill.className = 'track-pill';
+        trackBtnsWrap.appendChild(pill);
+        let pillReady = false;
+        function movePill(btn) {
+            if (!pillReady) pill.style.transition = 'none';
+            pill.style.left = btn.offsetLeft + 'px';
+            pill.style.top = btn.offsetTop + 'px';
+            pill.style.width = btn.offsetWidth + 'px';
+            pill.style.height = btn.offsetHeight + 'px';
+            if (!pillReady) {
+                pill.offsetHeight;
+                pill.style.transition = '';
+                pillReady = true;
+            }
+        }
+        window.addEventListener('resize', () => {
+            const a = document.querySelector('.track-btn.active');
+            if (a) movePill(a);
+        });
+
+        // 曲目切换
+        trackBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                trackBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                movePill(btn);
+
+                currentTrackSrc = btn.dataset.src;
+                currentTrackName = btn.dataset.name;
+                document.getElementById('nowPlayingText').textContent = '正在播放：' + currentTrackName;
+
+                audioSource.src = currentTrackSrc;
+                audioSource.type = 'audio/mpeg';
+                audio.load();
+
+                audio.play().catch(() => {
+                    // 浏览器限制自动播放时静默处理，用户点播放器即可
+                });
+            });
+        });
+
+        // 播放完自动切下一首（循环）
+        audio.addEventListener('ended', () => {
+            const activeBtn = document.querySelector('.track-btn.active');
+            const nextBtn = activeBtn.nextElementSibling || trackBtns[0];
+            nextBtn.click();
+        });
+
+        // 播放/暂停：开关均衡器动画 + 切换播放键图标
+        const playIconPath = document.getElementById('playIconPath');
+        const PLAY_D = 'M8 5v14l11-7z';
+        const PAUSE_D = 'M6 5h4v14H6zM14 5h4v14h-4z';
+        audio.addEventListener('play', () => {
+            document.getElementById('nowPlaying').classList.add('playing');
+            playIconPath.setAttribute('d', PAUSE_D);
+        });
+        audio.addEventListener('pause', () => {
+            document.getElementById('nowPlaying').classList.remove('playing');
+            playIconPath.setAttribute('d', PLAY_D);
+        });
+        document.getElementById('playBtn').addEventListener('click', () => {
+            audio.paused ? audio.play() : audio.pause();
+        });
+
+        // 进度条和时间显示
+        const progressFill = document.getElementById('progressFill');
+        const timeLabel = document.getElementById('timeLabel');
+        function fmt(s) {
+            s = Math.floor(s || 0);
+            return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+        }
+        audio.addEventListener('timeupdate', () => {
+            const d = audio.duration || 0;
+            progressFill.style.width = d ? (audio.currentTime / d * 100) + '%' : '0%';
+            timeLabel.textContent = fmt(audio.currentTime) + ' / ' + fmt(d);
+        });
+        audio.addEventListener('loadedmetadata', () => {
+            timeLabel.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
+        });
+
+        // 点击/拖动进度条跳转
+        const progressWrap = document.getElementById('progressWrap');
+        function seekTo(e) {
+            const r = progressWrap.getBoundingClientRect();
+            const ratio = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+            if (audio.duration) audio.currentTime = ratio * audio.duration;
+        }
+        progressWrap.addEventListener('pointerdown', e => {
+            seekTo(e);
+            const move = ev => seekTo(ev);
+            const up = () => {
+                document.removeEventListener('pointermove', move);
+                document.removeEventListener('pointerup', up);
+            };
+            document.addEventListener('pointermove', move);
+            document.addEventListener('pointerup', up);
+        });
+
+        // 初始化：恢复上次播放的曲目和进度，并尝试自动播放
+        window.onload = () => {
+            const savedSrc = localStorage.getItem('aceAudioSrc');
+            const savedTime = localStorage.getItem('aceAudioTime');
+            let targetBtn = trackBtns[0];
+            if (savedSrc) {
+                const found = Array.from(trackBtns).find(btn => btn.dataset.src === savedSrc);
+                if (found) targetBtn = found;
+            }
+            targetBtn.click();
+            if (savedTime) {
+                audio.addEventListener('loadeddata', () => {
+                    audio.currentTime = parseFloat(savedTime);
+                }, { once: true });
+            }
+            // 尝试自动播放；若被浏览器拦截，首次触碰页面任意位置立即开播
+            audio.play().catch(() => {
+                document.addEventListener('pointerdown', () => {
+                    audio.play().catch(() => {});
+                }, { once: true });
+            });
+        };
+
+        // 跳转提示：链接本身用 target="_blank" 原生跳转（不会被浏览器拦截），这里只负责显示提示
+        function showToast(e) {
+            const toast = document.getElementById('toast');
+            toast.style.opacity = 1;
+            setTimeout(() => {
+                toast.style.opacity = 0;
+            }, 1500);
+        }
+        // 按钮磁吸丝滑效果：指针靠近时按钮轻轻跟随，离开弹性回位，按下微缩
+        document.querySelectorAll('.card-btn, .group-btn, .download-btn').forEach(el => {
+            let tx = 0, ty = 0, x = 0, y = 0, s = 1, ts = 1, raf = null;
+            function loop() {
+                x += (tx - x) * 0.18;   // 缓动系数，越小越柔
+                y += (ty - y) * 0.18;
+                s += (ts - s) * 0.22;
+                el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) scale(${s.toFixed(3)})`;
+                if (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05 || Math.abs(ts - s) > 0.002) {
+                    raf = requestAnimationFrame(loop);
+                } else {
+                    el.style.transform = '';
+                    raf = null;
+                }
+            }
+            function kick() { if (!raf) raf = requestAnimationFrame(loop); }
+            el.addEventListener('pointermove', e => {
+                if (e.pointerType === 'touch') return;
+                const r = el.getBoundingClientRect();
+                tx = (e.clientX - r.left - r.width / 2) * 0.25;
+                ty = (e.clientY - r.top - r.height / 2) * 0.35;
+                kick();
+            });
+            el.addEventListener('pointerleave', () => { tx = 0; ty = 0; ts = 1; kick(); });
+            el.addEventListener('pointerdown', () => { ts = 0.93; kick(); });
+            el.addEventListener('pointerup', () => { ts = 1; kick(); });
+        });
+    </script>
+</body>
+</html>
