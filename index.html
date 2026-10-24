@@ -29,24 +29,18 @@
             align-items: center;
             font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
         }
-        /* 背景图用伪元素固定：兼容 iOS Safari（iOS 不支持 background-attachment: fixed） */
+        /* 背景图用伪元素固定：兼容 iOS Safari。纯图片铺满，无暗色蒙版 */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             z-index: -1;
-            background:
-                linear-gradient(180deg, rgba(27,28,30,0.70) 0%, rgba(27,28,30,0.86) 55%, rgba(27,28,30,0.94) 100%),
-                url('bg.jpg') center top / cover no-repeat,
-                var(--bg);
+            background: url('bg.jpg') center top / cover no-repeat, var(--bg);
         }
         /* 手机端：图片上方补过留白，头顶不贴边 */
         @media (max-width: 600px) {
             body::before {
-                background:
-                    linear-gradient(180deg, rgba(27,28,30,0.70) 0%, rgba(27,28,30,0.86) 55%, rgba(27,28,30,0.94) 100%),
-                    url('bg-headroom.jpg') center top / cover no-repeat,
-                    var(--bg);
+                background: url('bg-headroom.jpg') center top / cover no-repeat, var(--bg);
             }
         }
         .container {
@@ -390,6 +384,26 @@
             .version-desc { font-size: 1em; }
             .download-btn { width: 48px; height: 48px; }
         }
+        /* 亮图背景下的文字与控件适配 */
+        .title {
+            background: none;
+            -webkit-text-fill-color: #14161a;
+            color: #14161a;
+            text-shadow: 0 0 14px rgba(255,255,255,0.95), 0 0 4px rgba(255,255,255,0.9);
+        }
+        .channel { color: rgba(0,0,0,0.7); opacity: 1; text-shadow: 0 0 8px rgba(255,255,255,0.85); }
+        .now-playing { color: rgba(0,0,0,0.8); opacity: 1; text-shadow: 0 0 8px rgba(255,255,255,0.85); }
+        .card-btn, .group-btn, .custom-player, .version-list {
+            background: rgba(20,20,22,0.6);
+        }
+        .card-btn:hover, .group-btn:hover {
+            background: rgba(20,20,22,0.72);
+        }
+        .track-btn { background: rgba(0,0,0,0.5); }
+        .track-btn.active { background: transparent; }
+        .download-btn { background: rgba(0,0,0,0.5); }
+        .download-btn:hover { background: var(--accent); }
+        .version-item:not(:last-child)::after { background: rgba(255,255,255,0.18); }
     </style>
 </head>
 <body>
