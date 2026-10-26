@@ -494,6 +494,13 @@
         .notice-close:not(:disabled):hover {
             box-shadow: 0 6px 24px rgba(22,93,255,0.65);
         }
+        /* 访问量统计 */
+        .site-stats {
+            text-align: center;
+            font-size: 0.8em;
+            opacity: 0.5;
+            padding-bottom: 4px;
+        }
     </style>
 </head>
 <body>
@@ -559,6 +566,9 @@
             </div>
         </div>
     </div>
+
+    <div class="site-stats" id="busuanzi_container_site_pv">总访问量 <span id="busuanzi_value_site_pv">--</span> 次 · 访客 <span id="busuanzi_value_site_uv">--</span> 人</div>
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
     <div class="notice-overlay" id="noticeOverlay">
         <div class="notice-card">
