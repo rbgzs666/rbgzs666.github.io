@@ -1262,7 +1262,7 @@
         signBtn.textContent = '打卡中…';
         callCheckin(false).then(d => {
             if (!d || d.ok === false) { showToast((d && d.message) || '打卡失败，稍后再试'); return; }
-            renderDots(d.count || 0, true);
+            renderDots(d.count || 0, !d.blockedByIp);
             if (d.reward && d.reward.v1) {
                 showReward(d.reward);
                 showToast('🎉 感谢尊贵的 RBG 用户打卡');
